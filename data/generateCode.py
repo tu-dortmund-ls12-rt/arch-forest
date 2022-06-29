@@ -29,6 +29,7 @@ import Forest
 from ForestConverter import *
 from NativeTreeConverter import *
 from IfTreeConverter import *
+from HybridTreeConverter import *
 from MixConverter import *
 
 # A template to test the generated code
@@ -362,8 +363,15 @@ def main(argv):
 			Makefile = """COMPILER = {compiler}
 FLAGS = -std=c++11 -Wall -O3 -funroll-loops -ftree-vectorize
 
-all:
+all:		
 """
+
+			print("\tGenerating HybridTrees")
+			converter = ForestConverter(RCITHybridTreeConverter(dim, "RCITHybridTree", featureType, target, 1000, False))
+			generateClassifier(cppPath + "/", targetAcc, dim, numTest, converter, "RCITHybridTree", featureType, loadedForest, "../../../test.csv", reps)
+			Makefile += "\t$(COMPILER) $(FLAGS) RCITHybridTree.cpp testRCITHybridTree.cpp -o testRCITHybridTree\n"
+
+
 			print("\tGenerating If-Trees")
 			converter = ForestConverter(StandardIFTreeConverter(dim, "StandardIfTree", featureType))
 			generateClassifier(cppPath + "/", targetAcc, dim, numTest, converter, "StandardIfTree", featureType, loadedForest, "../../../test.csv", reps)
