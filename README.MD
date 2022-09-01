@@ -3,6 +3,12 @@
 
 ---
 
+# FLInt: Floating Point Enabled Integer Arithemtic
+
+This branch contains the implementation of the FLInt operator for if-else trees. The main code generation is implemented in the HybridTreeConverter file in the code folder. The code is called from the generateCode file in the data folder. The implementation supports X86 and ARMv8 for the assembly specific implementations.
+
+---
+
 This repository contains the code for our ICDM 2018 submission "Realization of Random Forest for Real-Time Evaluation through Tree Framing". To reproduce the exact state of the experiments you can checkout the following tag:
 
 First, clone the repo ``git clone git@bitbucket.org:sbuschjaeger/arch-forest.git``

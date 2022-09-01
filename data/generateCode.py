@@ -29,6 +29,7 @@ import Forest
 from ForestConverter import *
 from NativeTreeConverter import *
 from IfTreeConverter import *
+from HybridTreeConverter import *
 from MixConverter import *
 
 # A template to test the generated code
@@ -360,7 +361,11 @@ def main(argv):
 			dim = len(X[0])
 
 			Makefile = """COMPILER = {compiler}
-FLAGS = -std=c++11 -Wall -O3 -funroll-loops -ftree-vectorize
+			UNAME:=$(shell uname -sp)
+			ifeq ($(UNAME), Darwin arm)
+                COMPILER=aarch64-apple-darwin21-g++-12
+			endif
+FLAGS = -std=c++11 -Wall -O3 -funroll-loops -ftree-vectorize -g
 
 all:
 """
@@ -369,53 +374,24 @@ all:
 			generateClassifier(cppPath + "/", targetAcc, dim, numTest, converter, "StandardIfTree", featureType, loadedForest, "../../../test.csv", reps)
 			Makefile += "\t$(COMPILER) $(FLAGS) StandardIfTree.h StandardIfTree.cpp testStandardIfTree.cpp -o testStandardIfTree" + "\n"
 
-			for s in budgetSizes:
-				print("\tIf-Tree for budget", s)
+			
+			print("\tGenerating HybridTrees")
 
-				converter = ForestConverter(OptimizedIFTreeConverter(dim, "OptimizedPathIfTree_" + str(s), featureType, target, "path", s))
-				generateClassifier(cppPath + "/", targetAcc, dim, numTest, converter, "OptimizedPathIfTree_"+ str(s), featureType, loadedForest, "../../../test.csv", reps)
-				Makefile += "\t$(COMPILER) $(FLAGS) OptimizedPathIfTree_" + str(s)+".h" + " OptimizedPathIfTree_" + str(s)+".cpp testOptimizedPathIfTree_" + str(s)+".cpp -o testOptimizedPathIfTree_" + str(s) + "\n"
+			converter = ForestConverter(IntLogicFloatHybridTreeConverter(dim, "IntLogicFloatHybridTree", featureType, target, 1000, False))
+			generateClassifier(cppPath + "/", targetAcc, dim, numTest, converter, "IntLogicFloatHybridTree", featureType, loadedForest, "../../../test.csv", reps)
+			Makefile += "\t$(COMPILER) $(FLAGS) IntLogicFloatHybridTree.cpp testIntLogicFloatHybridTree.cpp -o testIntLogicFloatHybridTree\n"
 
-				# converter = ForestConverter(OptimizedIFTreeConverter(dim, "OptimizedNodeIfTree_" + str(s), featureType, target, "node", s))
-				# generateClassifier(cppPath + "/", targetAcc, dim, numTest, converter, "OptimizedNodeIfTree_" + str(s), featureType, loadedForest, "../../../test.csv", reps)
-				# Makefile += "\t$(COMPILER) $(FLAGS) OptimizedNodeIfTree_" + str(s)+".h" + " OptimizedNodeIfTree_" + str(s)+".cpp testOptimizedNodeIfTree_" + str(s)+".cpp -o testOptimizedNodeIfTree_" + str(s) + "\n"
-
-				# converter = ForestConverter(OptimizedIFTreeConverter(dim, "OptimizedSwapIfTree_" + str(s), featureType, target, "swap", s))
-				# generateClassifier(cppPath + "/", targetAcc, dim, numTest, converter, "OptimizedSwapIfTree_" + str(s), featureType, loadedForest, "../../../test.csv", reps)
-				# Makefile += "\t$(COMPILER) $(FLAGS) OptimizedSwapIfTree_" + str(s)+".h" + " OptimizedSwapIfTree_" + str(s)+".cpp testOptimizedSwapIfTree_" + str(s)+".cpp -o testOptimizedSwapIfTree_" + str(s) + "\n"
-
-			print("\tGenerating NativeTrees")
-
-			converter = ForestConverter(NaiveNativeTreeConverter(dim, "NaiveNativeTree", featureType))
-			generateClassifier(cppPath + "/", targetAcc, dim, numTest, converter, "NaiveNativeTree", featureType, loadedForest, "../../../test.csv", reps)
-			Makefile += "\t$(COMPILER) $(FLAGS) NaiveNativeTree.h NaiveNativeTree.cpp testNaiveNativeTree.cpp -o testNaiveNativeTree\n"
-
-			converter = ForestConverter(StandardNativeTreeConverter(dim, "StandardNativeTree", featureType))
-			generateClassifier(cppPath + "/", targetAcc, dim, numTest, converter, "StandardNativeTree", featureType, loadedForest, "../../../test.csv", reps)
-			Makefile += "\t$(COMPILER) $(FLAGS) StandardNativeTree.h StandardNativeTree.cpp testStandardNativeTree.cpp -o testStandardNativeTree\n"
-
-			for s in setSizes:
-				print("\tNative for set-size", s)
-
-				converter = ForestConverter(OptimizedNativeTreeConverter(dim, "OptimizedNativeTree_" + str(s), featureType, s))
-				generateClassifier(cppPath + "/", targetAcc, dim, numTest, converter, "OptimizedNativeTree_" + str(s), featureType, loadedForest, "../../../test.csv", reps)
-				Makefile += "\t$(COMPILER) $(FLAGS) OptimizedNativeTree_" + str(s)+".h" + " OptimizedNativeTree_" + str(s)+".cpp testOptimizedNativeTree_" + str(s)+".cpp -o testOptimizedNativeTree_" + str(s) + "\n"
-
-				# print("\tOptimizedNativeForest for set-size", s)
-
-				# converter = OptimizedNativeForestConverter(OptimizedNativeTreeConverterForest(dim, "OptimizedNativeForest_" + str(s), featureType, s))
-				# generateClassifier(cppPath + "/", targetAcc, dim, numTest, converter, "OptimizedNativeForest_" + str(s), featureType, loadedForest, "../../../test.csv", reps)
-				# Makefile += "\t$(COMPILER) $(FLAGS) OptimizedNativeForest_" + str(s)+".h" + " OptimizedNativeForest_" + str(s)+".cpp testOptimizedNativeForest_" + str(s)+".cpp -o testOptimizedNativeForest_" + str(s) + "\n"
-			# print("\tGenerating MixTrees")
-			#converter = ForestConverter(MixConverter(dim, "MixTree", featureType, target))
-			#generateClassifier(cppPath + "/", targetAcc, X,Y, converter, "MixTree", featureType, loadedForest, "../../../test.csv", reps)
+			converter = ForestConverter(IntLogicStandardIFTreeConverter(dim, "IntLogicStandardIFTree", featureType))
+			generateClassifier(cppPath + "/", targetAcc, dim, numTest, converter, "IntLogicStandardIFTree", featureType, loadedForest, "../../../test.csv", reps)
+			Makefile += "\t$(COMPILER) $(FLAGS) IntLogicStandardIFTree.cpp testIntLogicStandardIFTree.cpp -o testIntLogicStandardIFTree\n"
+			
 
 			if target == "intel":
 				compiler = "g++"
 			elif target == "ppc":
 								compiler = "powerpc-fsl-linux-g++ -m32 -mhard-float -mcpu=e6500 --sysroot=/opt/fsl-qoriq/2.0/sysroots/ppce6500-fsl-linux --static"
 			else:
-				compiler = "arm-linux-gnueabihf-g++"
+				compiler = "g++"
 
 			Makefile = Makefile.replace("{compiler}", compiler)
 
